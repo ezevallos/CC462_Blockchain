@@ -1,4 +1,6 @@
-package bcmine;
+package minero;
+
+import java.io.IOException;
 
 public class Minero {
 
@@ -9,10 +11,10 @@ public class Minero {
         System.out.println("Host: "+host+"\nPuerto: "+puerto);
         
         try {
-            SocketThread = new SocketThread(host, puerto);
-            SocketThread.start();
+            SocketThread socketThread = new SocketThread(host, puerto);
+            socketThread.start();
         } catch (IOException ex) {
-            notificarError( "Error en conexión");
+            //notificarError( "Error en conexión");
             System.exit(0);
         }
 

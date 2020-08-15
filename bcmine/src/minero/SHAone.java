@@ -1,4 +1,4 @@
-package bcmine;
+package minero;
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -136,7 +136,7 @@ public class SHAone {
         H[3] += D;
         H[4] += E;
 
-        int n;
+       // int n;
 //        for (n = 0; n < 16; n++) {
 //            System.out.println("W[" + n + "] = " + toHexString(W[n]));
 //        }

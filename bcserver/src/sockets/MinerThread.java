@@ -1,11 +1,14 @@
-package server;
+package sockets;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
-public class Minero implements Runnable {
+import modelos.Mensaje;
+import modelos.Respuesta;
+
+public class MinerThread implements Runnable {
     private Socket socket;
     private Integer id;
     private ObjectInputStream in;
@@ -13,7 +16,7 @@ public class Minero implements Runnable {
     private boolean running = true;
     private MineroListener listener;
 
-    public Minero(Socket socket, Integer id,MineroListener listener) {
+    public MinerThread(Socket socket, Integer id,MineroListener listener) {
         this.socket = socket;
         this.id = id;
         this.listener = listener;
@@ -32,10 +35,11 @@ public class Minero implements Runnable {
     private void stop() {
         this.running = false; // Se cancela
         try {
-            socket.close();
+            this.socket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
+        this.listener.eliminarMinero(this.id);
     }
 
     @Override
@@ -43,8 +47,8 @@ public class Minero implements Runnable {
         inicializarStreams();
         while (running) {
             try {
-                Mensaje mensaje = (Mensaje) this.in.readObject();
-                this.listener.leerMinero(this.id,mensaje);
+                Respuesta respuesta = (Respuesta) this.in.readObject();
+                this.listener.atenderRespuesta(this.id,respuesta);
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -67,7 +71,8 @@ public class Minero implements Runnable {
     }
     
     public interface MineroListener{
-        void leerMinero(Integer id, Mensaje mensaje);
+        void atenderRespuesta(Integer idMinero, Respuesta mensaje);
+        void eliminarMinero(Integer idMinero);
     }
 
     public Integer getId() {

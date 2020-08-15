@@ -13,7 +13,7 @@ public class MensajeBuilder {
     public static Mensaje msjMinar(String palabra,int nroCeros){
         Mensaje mensaje = new Mensaje();
         mensaje.setTipo(OP_MINAR);
-        mensaje.setBody(palabra);
+        mensaje.setPalabra(palabra);
         mensaje.setNroCeros(nroCeros);
         return mensaje;
     }
@@ -25,10 +25,11 @@ public class MensajeBuilder {
      * @param nroCeros Cantidad de ceros al inicio del hash resultante
      * @return  mensaje
      */
-    public static Mensaje msjVerificarKey(String key,int nroCeros){
+    public static Mensaje msjVerificarKey(String palabra,String key,int nroCeros){
         Mensaje mensaje = new Mensaje();
         mensaje.setTipo(OP_VERIFICAR);
-        mensaje.setBody(key);
+        mensaje.setPalabra(palabra);
+        mensaje.setKey(key);
         mensaje.setNroCeros(nroCeros);
         return mensaje;
     }

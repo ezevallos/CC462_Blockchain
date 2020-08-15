@@ -6,7 +6,8 @@ public class Mensaje implements Serializable{
     private static final long serialVersionUID = -3958426687533929032L;
     
     private int tipo;
-    private String body;
+    private String palabra;
+    private String key;
     private int nroCeros;
 
     public int getTipo() {
@@ -17,12 +18,20 @@ public class Mensaje implements Serializable{
         this.tipo = op;
     }
 
-    public String getBody() {
-        return body;
+    public String getPalabra() {
+        return palabra;
     }
 
-    public void setBody(String body) {
-        this.body = body;
+    public void setPalabra(String palabra) {
+        this.palabra = palabra;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public int getNroCeros() {
@@ -32,4 +41,5 @@ public class Mensaje implements Serializable{
     public void setNroCeros(int nroCeros) {
         this.nroCeros = nroCeros;
     }
+
 }

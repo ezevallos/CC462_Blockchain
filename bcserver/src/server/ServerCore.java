@@ -101,14 +101,16 @@ public class ServerCore implements ServerListener {
      * @param idMiner Id del minero que encontro el key
      * @param key     El key que encontro
      */
-    public void verificar(Integer idMiner, String key) {
-        Mensaje mensaje = MensajeBuilder.msjVerificarKey(key, nroCeros);
-        Map<Integer, MinerThread> mineros_c = new HashMap<>(mineros);
-        for (Integer id : mineros_c.keySet()) {
-            // Envia a todos menos al que lo encontro.
-            if (!id.equals(idMiner)) {
-                MinerThread minero = mineros_c.get(id);
-                minero.enviarMensaje(mensaje);
+    public void verificar(Integer idMiner, Datos datos) {
+        if(datos.getPalabra().equals(palabraActual)){
+            Mensaje mensaje = MensajeBuilder.msjVerificarKey(datos.getPalabra(),datos.getKey(), nroCeros);
+            Map<Integer, MinerThread> mineros_c = new HashMap<>(mineros);
+            for (Integer id : mineros_c.keySet()) {
+                // Envia a todos menos al que lo encontro.
+                if (!id.equals(idMiner)) {
+                    MinerThread minero = mineros_c.get(id);
+                    minero.enviarMensaje(mensaje);
+                }
             }
         }
     }

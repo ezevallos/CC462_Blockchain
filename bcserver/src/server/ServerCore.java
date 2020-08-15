@@ -6,8 +6,6 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.text.DateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -23,7 +21,8 @@ import sockets.ServerThread;
 import sockets.ServerThread.ServerListener;
 
 public class ServerCore implements ServerListener {
-
+    private static final int RESP_MINAR = 1;
+    private static final int RESP_VERIFICAR = 2;
     private Queue<String> palabras; // Contiene las palabras que se les buscara el key en el minado
     private Map<Integer, MinerThread> mineros;
     private Queue<Datos> colaVerificacion; // Contiene datos a verificar como el key
@@ -142,8 +141,42 @@ public class ServerCore implements ServerListener {
         output.close();
     }
 
+    /**
+     * Se atiende la respuesta del minero cuando encuentra una Key
+     * @param idMinero
+     * @param respuesta
+     */
+    public void respMinar(Integer idMinero, Respuesta respuesta){
+        Datos datos = respuesta.getDatos();
+        datos.setIdMinero(idMinero);
+        if(palabraActual.equals(datos.getPalabra())){   //Si no es se descarta
+            colaVerificacion.offer(datos);  //Encola
+            if(colaVerificacion.size()==1){ //Si esta en la cabeza
+                verificar(idMinero, datos); //Envia a verificar a los demas
+            }
+        }
+    }
+
+    /**
+     * Se atiende la respuesta del minero cuando verifica una key
+     * @param idMinero
+     * @param respuesta
+     */
+    public void respVerificar(Integer idMinero, Respuesta respuesta){
+        
+    }
+
     @Override
     public void atenderRespuesta(Integer idMinero, Respuesta respuesta) {
-        // TODO Atender respuesta
+        switch(respuesta.getTipo()){
+            case RESP_MINAR:
+                respMinar(idMinero, respuesta);
+                break;
+            case RESP_VERIFICAR:
+                respVerificar(idMinero, respuesta);
+                break;
+            default:
+                break;
+        }
     }
 }

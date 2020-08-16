@@ -24,8 +24,9 @@ public class MinerThread implements Runnable {
 
     private void inicializarStreams() {
         try {
-            this.in = new ObjectInputStream(socket.getInputStream());
             this.out = new ObjectOutputStream(socket.getOutputStream());
+            this.in = new ObjectInputStream(socket.getInputStream());
+            System.out.println("Minero-"+id.toString()+" conectado!");
         } catch (IOException e) {
             e.printStackTrace();
             stop();
@@ -49,9 +50,7 @@ public class MinerThread implements Runnable {
             try {
                 Respuesta respuesta = (Respuesta) this.in.readObject();
                 this.listener.atenderRespuesta(this.id,respuesta);
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

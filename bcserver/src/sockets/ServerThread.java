@@ -34,8 +34,10 @@ public class ServerThread implements Runnable, MineroListener {
     private void abrirServer() {
         try {
             this.serverSocket = new ServerSocket(port);
+            System.out.println("Servidor abierto en: "+port);
         } catch (IOException e) {
             System.err.println(e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -50,16 +52,21 @@ public class ServerThread implements Runnable, MineroListener {
             Socket mineroSock = null;
             try {
                 mineroSock = this.serverSocket.accept(); // Acepta conexion
+                System.out.println("Nueva conexion desde "+mineroSock.getRemoteSocketAddress().toString());
+                MinerThread minero = new MinerThread(mineroSock, ++contador, this);
+                this.mineros.put(minero.getId(), minero);
+                this.excsrv.execute(minero); // Ejecuta nuevo hilo de minero
+                //Thread thread = new Thread(minero);
+                //thread.start();
             } catch (IOException e) {
                 if (!isRunning()) {
                     System.out.println("Servidor detenido");
                     break;
                 }
                 System.err.println(e.getMessage());
+                e.printStackTrace();
             }
-            MinerThread minero = new MinerThread(mineroSock, ++contador, this);
-            this.mineros.put(minero.getId(), minero);
-            this.excsrv.execute(minero); // Ejecuta nuevo hilo de minero
+            
         }
         this.excsrv.shutdown(); // Apaga el executor service
     }
@@ -74,6 +81,7 @@ public class ServerThread implements Runnable, MineroListener {
             this.serverSocket.close();
         } catch (IOException e) {
             System.err.println(e.getMessage());
+            e.printStackTrace();
         }
     }
 

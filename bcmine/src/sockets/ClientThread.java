@@ -28,10 +28,17 @@ public class ClientThread implements Runnable {
         this.listener = listener;
     }
 
-    private void conectarSocket() throws UnknownHostException, IOException {
-        socket = new Socket(address, port);
-        in = new ObjectInputStream(socket.getInputStream());
-        out = new ObjectOutputStream(socket.getOutputStream());
+    private void conectarSocket() {
+        System.out.println("Conectando a "+address+":"+port);
+        try {
+            this.socket = new Socket(address, port);
+            this.out = new ObjectOutputStream(socket.getOutputStream());
+            this.in = new ObjectInputStream(socket.getInputStream());
+            System.out.println("Conectado!");
+        } catch (Exception e) {
+            System.out.println("No se pudo conectar");
+            e.printStackTrace();
+        }
    }
 
    @Override
@@ -42,10 +49,8 @@ public class ClientThread implements Runnable {
                 Mensaje mensaje = (Mensaje)in.readObject();
                 this.listener.atenderMensaje(mensaje);
             }
-        } catch (UnknownHostException e) {
-            System.err.println("Imposible conectar a host");
-        } catch (IOException | ClassNotFoundException e) {
-            System.err.println(e.getMessage());
+        } catch (Exception e){
+            e.printStackTrace();
         } finally{
             stopSocket();
         }
@@ -56,8 +61,9 @@ public class ClientThread implements Runnable {
        running = false;
        try {
            socket.close();
-       } catch (IOException e) {
-            System.err.println(e.getMessage());
+       } catch (Exception e) {
+            e.printStackTrace();
+            //System.err.println(e.getMessage());
        }
    }
 
@@ -69,7 +75,8 @@ public class ClientThread implements Runnable {
        try {
            out.writeObject(respuesta);
        } catch (IOException ex) {
-           System.err.println(ex.getMessage());
+           ex.printStackTrace();
+           //System.err.println(ex.getMessage());
        }
    }
 

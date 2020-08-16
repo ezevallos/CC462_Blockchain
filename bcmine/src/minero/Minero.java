@@ -1,20 +1,21 @@
 package minero;
 
 import modelos.Mensaje;
+import modelos.Respuesta;
 import sockets.ClientThread;
 import sockets.ClientThread.ClienteListener;
 
 public class Minero implements ClienteListener {
-    private ClientThread socketThread;  //Maneja la conexion con el server
+    private ClientThread clientThread;  //Maneja la conexion con el server
     private static final int OP_MINAR = 1;
     private static final int OP_VERIFICAR = 2;
 
     public Minero(String host,int puerto){
-        this.socketThread = new ClientThread(host, puerto,this);
+        this.clientThread = new ClientThread(host, puerto,this);
     }
 
     public void conectar(){
-        Thread thread = new Thread(socketThread);
+        Thread thread = new Thread(clientThread);
         thread.start();
     }
 
@@ -88,6 +89,7 @@ public class Minero implements ClienteListener {
 
     }
 
+
     @Override
     public void atenderMensaje(Mensaje mensaje) {
         switch(mensaje.getTipo()){
@@ -98,7 +100,16 @@ public class Minero implements ClienteListener {
                 verificar(mensaje.getPalabra(), mensaje.getKey(),mensaje.getNroCeros());
                 break;
             default:
+                System.out.println(mensaje.getPalabra());
+                pong();
                 break;
         }
+    }
+
+    public void pong(){
+        Respuesta respuesta = new Respuesta();
+        respuesta.setTipo(3);
+        respuesta.setVerifica(true);
+        clientThread.enviarRespuesta(respuesta);
     }
 }

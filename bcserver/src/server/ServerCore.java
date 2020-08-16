@@ -36,6 +36,11 @@ public class ServerCore implements ServerListener {
         mineros = serverThread.getMineros();
     }
 
+    public void iniciarComunicaciones(){
+        Thread thread = new Thread(this.serverThread);
+        thread.start();
+    }
+
     /**
      * Fija los numeros de ceros al inicio del hash resultante 
      * Ejemplo: Sha1(palabra + key) = 000xxxxxxx
@@ -166,6 +171,10 @@ public class ServerCore implements ServerListener {
         
     }
 
+    public void mostrar(Integer idMinero, Respuesta respuesta){
+        System.out.println("Minero-"+idMinero.toString()+": "+respuesta.isVerifica());
+    }
+
     @Override
     public void atenderRespuesta(Integer idMinero, Respuesta respuesta) {
         switch(respuesta.getTipo()){
@@ -176,7 +185,22 @@ public class ServerCore implements ServerListener {
                 respVerificar(idMinero, respuesta);
                 break;
             default:
+                mostrar(idMinero,respuesta);
                 break;
+        }
+    }
+
+
+    public void ping(){
+        Mensaje mensaje = new Mensaje();
+        mensaje.setTipo(3);
+        mensaje.setPalabra("Esto es una prueba");
+        Map<Integer, MinerThread> mineros_c = new HashMap<>(mineros);
+        for (Integer id : mineros_c.keySet()) {
+            // Envia a todos menos al que lo encontro.
+            MinerThread minero = mineros_c.get(id);
+            minero.enviarMensaje(mensaje);
+            System.out.println("Envia ping a minero-"+minero.getId().toString());
         }
     }
 }

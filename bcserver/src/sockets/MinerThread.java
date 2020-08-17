@@ -56,12 +56,12 @@ public class MinerThread implements Runnable {
         }
     }
 
-    public void enviarMensaje(Mensaje mensaje){
+    public void enviarMensaje(Mensaje mensaje) throws Exception{
         try {
             this.out.writeObject(mensaje);
         } catch (IOException e) {
-            e.printStackTrace();    //Hubo alguna desconexion
             stop();
+            throw new Exception("Hubo una desconeccion");
         }
     }
 

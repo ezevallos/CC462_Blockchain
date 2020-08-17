@@ -15,7 +15,7 @@ public class ServerThread implements Runnable, MineroListener {
 
     private Map<Integer, MinerThread> mineros;
 
-    private ExecutorService excsrv = Executors.newFixedThreadPool(8);
+    private ExecutorService excsrv = Executors.newCachedThreadPool();//Executors.newFixedThreadPool(10);
     private ServerSocket serverSocket;
     private boolean running = true;
     protected Thread runningThread = null;

@@ -30,24 +30,35 @@ public class ServerCore implements ServerListener {
     private int nroCeros; // Cantidad de ceros al principio del hash resultado
     private String palabraActual; // Palabra actual que se esta minando
     private String archivoSalida; // Nombre de archivo de salida donde se guarda los datos verificados
+    //private static final String DIR_PALABRAS = "./palabras/";
+    private int numMinando, numVerifican, numConfirman;
+    private CoreListener listener;
 
-    public ServerCore() {
+    public ServerCore(CoreListener listener) {
         serverThread = new ServerThread(5555, this);
         mineros = serverThread.getMineros();
+        palabras = new LinkedList<>();
+        this.listener = listener;
     }
 
-    public void iniciarComunicaciones(){
+    public void runCore() {
+        iniciarComunicaciones();
+    }
+
+    public void iniciarComunicaciones() {
         Thread thread = new Thread(this.serverThread);
         thread.start();
     }
 
     /**
-     * Fija los numeros de ceros al inicio del hash resultante 
-     * Ejemplo: Sha1(palabra + key) = 000xxxxxxx
+     * Fija los numeros de ceros al inicio del hash resultante Ejemplo: Sha1(palabra
+     * + key) = 000xxxxxxx
+     * 
      * @param nroCeros Cantidad de ceros delante
      */
     public void setNroCeros(int nroCeros) {
         this.nroCeros = nroCeros;
+        System.out.println("Número de ceros: " + this.nroCeros);
     }
 
     /**
@@ -56,26 +67,25 @@ public class ServerCore implements ServerListener {
      * 
      * @param path Ruta del archivo de texto
      */
-    public void cargarPalabras(String path) {
-        if (palabras == null)
-            palabras = new LinkedList<>();
-        File file = new File(path);
+    public void cargarPalabras(File file) {
+        palabras.clear();
         Scanner sc;
         try {
             sc = new Scanner(file);
             while (sc.hasNextLine())
                 palabras.offer(sc.nextLine());
+            sc.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-
+        System.out.println("Se cargó " + palabras.size() + " palabras");
     }
 
     /**
      * Crea un archivo de texto donde se guardara posteriormente los datos
      */
     public void crearArchivoSalida() {
-        archivoSalida = "salida" + System.currentTimeMillis()+".txt";
+        archivoSalida = "salida" + System.currentTimeMillis() + ".txt";
         try {
             writeLine(archivoSalida, Datos.HEADERS);
         } catch (IOException e) {
@@ -90,38 +100,59 @@ public class ServerCore implements ServerListener {
     public void minar() {
         palabraActual = palabras.poll();
         if (palabraActual != null && nroCeros > 0) {
+            numMinando = 0;
             Mensaje mensaje = MensajeBuilder.msjMinar(palabraActual, nroCeros);
             Map<Integer, MinerThread> mineros_c = new HashMap<>(mineros);
             for (Integer id : mineros_c.keySet()) {
                 // Broadcasting.
                 MinerThread minero = mineros_c.get(id);
-                minero.enviarMensaje(mensaje);
+                try {
+                    minero.enviarMensaje(mensaje);
+                    // System.out.println("Se envia "+palabraActual+" con "+nroCeros+" ceros a
+                    // minero-"+minero.getId().toString());
+                    numMinando++;
+                } catch (Exception e) {
+                    // e.printStackTrace();
+                }
             }
+            System.out.println("Se envió palabra=" + palabraActual + " con " + nroCeros + " ceros a " + numMinando + " mineros");
+        } else {
+            listener.finalizaMinado();
+            System.out.println("Nada que minar");
         }
     }
 
     /**
      * Se envia el key a los mineros para que lo verfiquen
+     * 
      * @param idMiner Id del minero que encontro el key
      * @param key     El key que encontro
      */
     public void verificar(Integer idMiner, Datos datos) {
-        if(datos.getPalabra().equals(palabraActual)){
-            Mensaje mensaje = MensajeBuilder.msjVerificarKey(datos.getPalabra(),datos.getKey(), nroCeros);
+        if (datos.getPalabra().equals(palabraActual)) {
+            numConfirman = 0;
+            numVerifican = 0;
+            Mensaje mensaje = MensajeBuilder.msjVerificarKey(datos.getPalabra(), datos.getKey(), nroCeros);
             Map<Integer, MinerThread> mineros_c = new HashMap<>(mineros);
             for (Integer id : mineros_c.keySet()) {
                 // Envia a todos menos al que lo encontro.
                 if (!id.equals(idMiner)) {
                     MinerThread minero = mineros_c.get(id);
-                    minero.enviarMensaje(mensaje);
+                    try {
+                        minero.enviarMensaje(mensaje);
+                        numVerifican++;
+                    } catch (Exception e) {
+                        // e.printStackTrace();
+                    }
                 }
             }
+            System.out.println("Se mando verificar key="+datos.getKey()+" a "+numVerifican+" mineros");
         }
     }
 
     /**
-     * Guarda los datos de respuesta que fueron confirmados
-     * en el archivo de salida
+     * Guarda los datos de respuesta que fueron confirmados en el archivo de salida
+     * 
      * @param datos Contiene la palabra, key, nroCeros, nroIter, tiempoMS
      */
     public void guardarBloque(Datos datos) {
@@ -136,48 +167,51 @@ public class ServerCore implements ServerListener {
 
     /**
      * Escribe una linea al final del archivo especificado
+     * 
      * @param fileName nombre de archivo
-     * @param line Linea a escribir
+     * @param line     Linea a escribir
      * @throws IOException
      */
     public void writeLine(String fileName, String line) throws IOException {
-        Writer output = new BufferedWriter(new FileWriter(fileName,true));
+        Writer output = new BufferedWriter(new FileWriter(fileName, true));
         output.append(line);
         output.close();
     }
 
     /**
      * Se atiende la respuesta del minero cuando encuentra una Key
+     * 
      * @param idMinero
      * @param respuesta
      */
-    public void respMinar(Integer idMinero, Respuesta respuesta){
+    public synchronized void respMinar(Integer idMinero, Respuesta respuesta) {
         Datos datos = respuesta.getDatos();
         datos.setIdMinero(idMinero);
-        if(palabraActual.equals(datos.getPalabra())){   //Si no es se descarta
-            colaVerificacion.offer(datos);  //Encola
-            if(colaVerificacion.size()==1){ //Si esta en la cabeza
-                verificar(idMinero, datos); //Envia a verificar a los demas
+        if (palabraActual.equals(datos.getPalabra())) { // Si no es se descarta
+            colaVerificacion.offer(datos); // Encola
+            if (colaVerificacion.size() == 1) { // Si esta en la cabeza
+                verificar(idMinero, datos); // Envia a verificar a los demas
             }
         }
     }
 
     /**
      * Se atiende la respuesta del minero cuando verifica una key
+     * 
      * @param idMinero
      * @param respuesta
      */
-    public void respVerificar(Integer idMinero, Respuesta respuesta){
-        
+    public synchronized void respVerificar(Integer idMinero, Respuesta respuesta) {
+
     }
 
-    public void mostrar(Integer idMinero, Respuesta respuesta){
-        System.out.println("Minero-"+idMinero.toString()+": "+respuesta.isVerifica());
+    public void mostrar(Integer idMinero, Respuesta respuesta) {
+        System.out.println("Minero-" + idMinero.toString() + ": " + respuesta.isVerifica());
     }
 
     @Override
     public void atenderRespuesta(Integer idMinero, Respuesta respuesta) {
-        switch(respuesta.getTipo()){
+        switch (respuesta.getTipo()) {
             case RESP_MINAR:
                 respMinar(idMinero, respuesta);
                 break;
@@ -185,13 +219,15 @@ public class ServerCore implements ServerListener {
                 respVerificar(idMinero, respuesta);
                 break;
             default:
-                mostrar(idMinero,respuesta);
+                mostrar(idMinero, respuesta);
                 break;
         }
     }
 
-
-    public void ping(){
+    /**
+     * Solo de prueba
+     */
+    public void ping() {
         Mensaje mensaje = new Mensaje();
         mensaje.setTipo(3);
         mensaje.setPalabra("Esto es una prueba");
@@ -199,8 +235,18 @@ public class ServerCore implements ServerListener {
         for (Integer id : mineros_c.keySet()) {
             // Envia a todos menos al que lo encontro.
             MinerThread minero = mineros_c.get(id);
-            minero.enviarMensaje(mensaje);
-            System.out.println("Envia ping a minero-"+minero.getId().toString());
+            try {
+                minero.enviarMensaje(mensaje);
+                System.out.println("Envia ping a minero-"+minero.getId().toString());
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
+    }
+
+    public interface CoreListener{
+        void finalizaMinado();
+        void muestraKey(String key);
     }
 }

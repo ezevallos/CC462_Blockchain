@@ -118,6 +118,7 @@ public class ServerCore implements ServerListener {
                     // e.printStackTrace();
                 }
             }
+            System.out.println("----------------------------------------------------------------------------------------------");
             System.out.println("Se envió palabra=" + palabraActual + " con " + nroCeros + " ceros a " + numMinando + " mineros");
         } else {
             listener.finalizaMinado();
@@ -215,22 +216,22 @@ public class ServerCore implements ServerListener {
             if(respuesta.isVerifica()){
                 numConfirman++;
                 System.out.println("Minero-"+idMinero.toString()+" confirma el key="+datoVerificar.getKey());
-            }
-            if(numConfirman >= (numVerifican/2 + 1)){
-                //Exito
-                System.out.println("Key="+datoVerificar.getKey()+" Confirmado!");
-                listener.muestraKey(datoVerificar.getKey());
-                guardarBloque(datoVerificar);   //Guarda
-                minar();    //Pasa a la siguiente palabra
-                return;
-            }
-            if(numVerifican == numRespVer && numConfirman < (numVerifican/2 + 1)){
+            }else{
                 //Falla verificacion
+                System.out.println("Minero-"+idMinero.toString()+" NO Confirma el key="+datoVerificar.getKey());
                 System.out.println("Key="+datoVerificar.getKey()+" No se pudo confirmar!");
                 colaVerificacion.poll();
                 Datos datos2 = colaVerificacion.peek(); //Pasa al siguiente verificar
                 if(datos2!=null)
                     verificar(datos2.getIdMinero(), datos2);
+                return;
+            }
+            if(numConfirman == numVerifican){   //ASUMO QUE NINGUNO SE DESCONECTA
+                //Exito
+                System.out.println("Key="+datoVerificar.getKey()+" Confirmado!");
+                listener.muestraKey(datoVerificar.getKey());
+                guardarBloque(datoVerificar);   //Guarda
+                minar();    //Pasa a la siguiente palabra
             }
         }
     }

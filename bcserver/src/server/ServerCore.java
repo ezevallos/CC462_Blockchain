@@ -27,7 +27,7 @@ public class ServerCore implements ServerListener {
     private Map<Integer, MinerThread> mineros;
     private Queue<Datos> colaVerificacion; // Contiene datos a verificar como el key
     private ServerThread serverThread; // Maneja la comunicacion socket
-    private int nroCeros; // Cantidad de ceros al principio del hash resultado
+    private int nroCeros = 1; // Cantidad de ceros al principio del hash resultado
     private String palabraActual; // Palabra actual que se esta minando
     private String archivoSalida; // Nombre de archivo de salida donde se guarda los datos verificados
     //private static final String DIR_PALABRAS = "./palabras/";

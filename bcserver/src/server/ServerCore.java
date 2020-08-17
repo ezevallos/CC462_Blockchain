@@ -31,8 +31,9 @@ public class ServerCore implements ServerListener {
     private String palabraActual; // Palabra actual que se esta minando
     private String archivoSalida; // Nombre de archivo de salida donde se guarda los datos verificados
     //private static final String DIR_PALABRAS = "./palabras/";
-    private int numMinando, numVerifican, numConfirman;
+    private int numMinando, numVerifican, numConfirman, numRespVer;
     private CoreListener listener;
+    private Datos datoVerificar;
 
     public ServerCore(CoreListener listener) {
         serverThread = new ServerThread(5555, this);
@@ -99,6 +100,8 @@ public class ServerCore implements ServerListener {
      */
     public void minar() {
         palabraActual = palabras.poll();
+        colaVerificacion.clear();
+        datoVerificar = null;
         if (palabraActual != null && nroCeros > 0) {
             numMinando = 0;
             Mensaje mensaje = MensajeBuilder.msjMinar(palabraActual, nroCeros);
@@ -130,9 +133,11 @@ public class ServerCore implements ServerListener {
      */
     public void verificar(Integer idMiner, Datos datos) {
         if (datos.getPalabra().equals(palabraActual)) {
+            datoVerificar = datos;
             numConfirman = 0;
             numVerifican = 0;
-            Mensaje mensaje = MensajeBuilder.msjVerificarKey(datos.getPalabra(), datos.getKey(), nroCeros);
+            numRespVer = 0;
+            Mensaje mensaje = MensajeBuilder.msjVerificarKey(datoVerificar.getPalabra(), datoVerificar.getKey(), nroCeros);
             Map<Integer, MinerThread> mineros_c = new HashMap<>(mineros);
             for (Integer id : mineros_c.keySet()) {
                 // Envia a todos menos al que lo encontro.
@@ -188,6 +193,7 @@ public class ServerCore implements ServerListener {
         Datos datos = respuesta.getDatos();
         datos.setIdMinero(idMinero);
         if (palabraActual.equals(datos.getPalabra())) { // Si no es se descarta
+            System.out.println("Minero-"+idMinero.toString()+" encontro el key="+datos.getKey());
             colaVerificacion.offer(datos); // Encola
             if (colaVerificacion.size() == 1) { // Si esta en la cabeza
                 verificar(idMinero, datos); // Envia a verificar a los demas
@@ -202,7 +208,31 @@ public class ServerCore implements ServerListener {
      * @param respuesta
      */
     public synchronized void respVerificar(Integer idMinero, Respuesta respuesta) {
-
+        Datos datos = respuesta.getDatos();
+        numRespVer++;
+        if (datoVerificar!=null && datoVerificar.getPalabra().equals(datos.getPalabra()) 
+            && datoVerificar.getKey().equals(datos.getKey()) ) { // Si no es se descarta
+            if(respuesta.isVerifica()){
+                numConfirman++;
+                System.out.println("Minero-"+idMinero.toString()+" confirma el key="+datoVerificar.getKey());
+            }
+            if(numConfirman >= (numVerifican/2 + 1)){
+                //Exito
+                System.out.println("Key="+datoVerificar.getKey()+" Confirmado!");
+                listener.muestraKey(datoVerificar.getKey());
+                guardarBloque(datoVerificar);   //Guarda
+                minar();    //Pasa a la siguiente palabra
+                return;
+            }
+            if(numVerifican == numRespVer && numConfirman < (numVerifican/2 + 1)){
+                //Falla verificacion
+                System.out.println("Key="+datoVerificar.getKey()+" No se pudo confirmar!");
+                colaVerificacion.poll();
+                Datos datos2 = colaVerificacion.peek(); //Pasa al siguiente verificar
+                if(datos2!=null)
+                    verificar(datos2.getIdMinero(), datos2);
+            }
+        }
     }
 
     public void mostrar(Integer idMinero, Respuesta respuesta) {

@@ -127,6 +127,7 @@ public class Gui extends JFrame implements CoreListener{
         btnMinar.setEnabled(false);
         btnCeros.setEnabled(false);
         btnCargar.setEnabled(false);
+        core.crearArchivoSalida();
         core.minar();
     }
 

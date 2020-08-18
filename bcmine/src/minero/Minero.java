@@ -30,8 +30,8 @@ public class Minero implements ClienteListener {
 
     public static void main(String[] args) {
 
-        String host = args[1];
-        int puerto = Integer.parseInt(args[2]);
+        String host = "localhost";//args[1];
+        int puerto = 5555; //Integer.parseInt(args[2]);
         System.out.println("Host: " + host + "\nPuerto: " + puerto);
         Minero minero = new Minero(host, puerto);
         minero.conectar();
@@ -44,9 +44,9 @@ public class Minero implements ClienteListener {
      * @param nroCeros cantidad de ceros al inicio del hash
      */
     public void minar(String palabra,int nroCeros){
-        ex.shutdownNow();
+        //ex.shutdownNow();
         for(int i = 0; i < 4; i++) {
-            Runnable runnable = new MineroThread(palabra,nroCeros,clientThread);
+            Runnable runnable = new MineroThread(palabra,nroCeros,clientThread,ex);
             ex.execute(runnable);
         }
         
@@ -69,13 +69,13 @@ public class Minero implements ClienteListener {
            System.out.println("Message: z:" + z);
            byte[] dataBuffer = (z).getBytes();
            String thedigest = digester.Encript(dataBuffer);
-           // System.out.println("out"+i+":"+thedigest+(
+           System.out.println("Verificando palabra="+palabra+" key="+key);
            // thedigest.charAt(0)=='0'&&thedigest.charAt(0)=='1'?":):):):):)":"--"));
-           System.out.println("out" + i + ":" + thedigest);
-           String thedigest = digester.Encript(dataBuffer);
+           System.out.println("A verificar out:" + thedigest);
+           //String thedigest = digester.Encript(dataBuffer);
                     // System.out.println("out"+i+":"+thedigest+(
                     // thedigest.charAt(0)=='0'&&thedigest.charAt(0)=='1'?":):):):):)":"--"));
-                    System.out.println("out" + i + ":" + thedigest);
+                    //System.out.println("out" + i + ":" + thedigest);
 
                     // if (zeros == 1) {
                     // if (thedigest.charAt(0) == '0') {
@@ -97,9 +97,9 @@ public class Minero implements ClienteListener {
                     datos.setPalabra(palabra);
                     datos.setKey(key);
                     if (sumz == zeros) {
-                        clientThread.enviarRespuesta(RespuestaBuilder.respVerificar(datos,true));
+                        clientThread.enviarRespuesta(RespuestaBuilder.respVerficar(datos,true));
                     } else {
-                        clientThread.enviarRespuesta(RespuestaBuilder.respVerificar(datos,false));                        
+                        clientThread.enviarRespuesta(RespuestaBuilder.respVerficar(datos,false));                        
                     }
             }
         };

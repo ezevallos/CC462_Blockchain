@@ -181,7 +181,7 @@ public class ServerCore implements ServerListener {
      */
     public void writeLine(String fileName, String line) throws IOException {
         Writer output = new BufferedWriter(new FileWriter(fileName, true));
-        output.append(line);
+        output.append(line+"\n");
         output.close();
     }
 
@@ -194,7 +194,7 @@ public class ServerCore implements ServerListener {
     public synchronized void respMinar(Integer idMinero, Respuesta respuesta) {
         Datos datos = respuesta.getDatos();
         datos.setIdMinero(idMinero);
-        if (palabraActual.equals(datos.getPalabra())) { // Si no es se descarta
+        if (palabraActual!=null && palabraActual.equals(datos.getPalabra())) { // Si no es se descarta
             System.out.println("Minero-"+idMinero.toString()+" encontro el key="+datos.getKey());
             colaVerificacion.offer(datos); // Encola
             if (colaVerificacion.size() == 1) { // Si esta en la cabeza

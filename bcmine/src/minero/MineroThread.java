@@ -60,8 +60,7 @@ public class MineroThread implements Runnable {
                     //ex.shutdownNow();
                     break;
                 }                       
-                } catch (Exception ex) {
-                }
+                } catch (Exception ex) {}
             i++; 
         }
     }

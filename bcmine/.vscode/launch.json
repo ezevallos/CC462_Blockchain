@@ -16,13 +16,6 @@
             "request": "launch",
             "mainClass": "minero.Minero",
             "projectName": "bcmine_793a1deb"
-        },
-        {
-            "type": "java",
-            "name": "Debug (Launch)-test<bcmine_793a1deb>",
-            "request": "launch",
-            "mainClass": "test",
-            "projectName": "bcmine_793a1deb"
         }
     ]
 }

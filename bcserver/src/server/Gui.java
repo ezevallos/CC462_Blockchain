@@ -14,10 +14,11 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
-import javafx.event.ActionEvent;
 import server.ServerCore.CoreListener;
 
 public class Gui extends JFrame implements CoreListener{
+    private static final long serialVersionUID = 1L;
+    
     public static int ALTURA = 500;
     public static int ANCHO = 500;
     public static String TITULO = "Block-Chain";

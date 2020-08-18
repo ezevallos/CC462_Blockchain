@@ -31,7 +31,7 @@ public class ServerCore implements ServerListener {
     private String palabraActual; // Palabra actual que se esta minando
     private String archivoSalida; // Nombre de archivo de salida donde se guarda los datos verificados
     //private static final String DIR_PALABRAS = "./palabras/";
-    private int numMinando, numVerifican, numConfirman, numRespVer;
+    private int numMinando, numVerifican, numConfirman;
     private CoreListener listener;
     private Datos datoVerificar;
 
@@ -139,7 +139,6 @@ public class ServerCore implements ServerListener {
             datoVerificar = datos;
             numConfirman = 0;
             numVerifican = 0;
-            numRespVer = 0;
             Mensaje mensaje = MensajeBuilder.msjVerificarKey(datoVerificar.getPalabra(), datoVerificar.getKey(), nroCeros);
             Map<Integer, MinerThread> mineros_c = new HashMap<>(mineros);
             for (Integer id : mineros_c.keySet()) {
@@ -212,7 +211,6 @@ public class ServerCore implements ServerListener {
      */
     public synchronized void respVerificar(Integer idMinero, Respuesta respuesta) {
         Datos datos = respuesta.getDatos();
-        numRespVer++;
         if (datoVerificar!=null && datoVerificar.getPalabra().equals(datos.getPalabra()) 
             && datoVerificar.getKey().equals(datos.getKey()) ) { // Si no es se descarta
             if(respuesta.isVerifica()){

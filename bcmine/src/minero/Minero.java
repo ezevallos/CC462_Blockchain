@@ -34,8 +34,8 @@ public class Minero implements ClienteListener,MineroThread.MineroItf {
 
     public static void main(String[] args) {
 
-        String host = "localhost";//args[1];
-        int puerto = 5555; //Integer.parseInt(args[2]);
+        String host = args[0];
+        int puerto = Integer.parseInt(args[1]);
         System.out.println("Host: " + host + "\nPuerto: " + puerto);
         Minero minero = new Minero(host, puerto);
         minero.conectar();
@@ -50,6 +50,8 @@ public class Minero implements ClienteListener,MineroThread.MineroItf {
     public void minar(String palabra,int nroCeros){
         //ex.shutdownNow();
         detieneThreads();
+        System.out.print("-----------------------------------------------------------");
+        System.out.println("Minando palabra: " +palabra);
         for(int i = 0; i < numThreads; i++) {
             MineroThread minero = new MineroThread(palabra,nroCeros,clientThread,this);
             mineros.add(minero);
@@ -71,10 +73,9 @@ public class Minero implements ClienteListener,MineroThread.MineroItf {
             int sumz = 0;
             int zeros = nroCeros;
             String z = palabra + key;
-            System.out.println("Thread-"+threadID+" Message: z:" + z);
             byte[] dataBuffer = (z).getBytes();
             String thedigest = digester.Encript(dataBuffer);
-            System.out.println("Thread-"+threadID+" Verificando palabra=" + palabra + " key=" + key);
+            System.out.println("Thread-"+threadID+" Verificando palabra: " + palabra + " key:" + key);
             System.out.println("Thread-"+threadID+" A verificar out:" + thedigest);
             sumz = 0;
             for (int j = 0; j < zeros; j++) {

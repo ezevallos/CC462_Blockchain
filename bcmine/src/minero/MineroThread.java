@@ -31,15 +31,14 @@ public class MineroThread implements Runnable {
         datos.setPalabra(palabra);
         long timeStart = System.currentTimeMillis();
         int i = 0; 
+        System.out.println("Thread-"+threadID+" minando palabra: " +palabra);
         while (isRunning && i < 100000) {
             try {
                 
                 String key = RandomStringUtils.randomAlphanumeric(10,11);
                 String z = palabra + key;
-                System.out.println("Thread-"+threadID+" Message: z:" + z);
                 byte[] dataBuffer = (z).getBytes();
                 String thedigest = digester.Encript(dataBuffer);
-                System.out.println("Thread-"+threadID+" out" + i + ":" + thedigest);
 
                 sumz = 0;
                 for (int j = 0; j < zeros; j++) {
@@ -56,7 +55,9 @@ public class MineroThread implements Runnable {
                     datos.setTiempoMs(timeEnd-timeStart);
                     datos.setNroIter(i);
                     clientThread.enviarRespuesta(RespuestaBuilder.respMinar(datos));
-                    System.out.println("Thread-"+threadID+" Key="+key+" encontrado en "+datos.getTiempoMs()+" ms");
+                    System.out.println("Thread-"+threadID+" Message: z:" + z);
+                    System.out.println("Thread-"+threadID+" out" + i + ":" + thedigest);
+                    System.out.println("Thread-"+threadID+" Key: "+key+" encontrado en "+datos.getTiempoMs()+" ms");
                     //ex.shutdownNow();
                     break;
                 }                       

@@ -58,6 +58,7 @@ public class MinerThread implements Runnable {
 
     public void enviarMensaje(Mensaje mensaje) throws Exception{
         try {
+            this.out.reset();
             this.out.writeObject(mensaje);
         } catch (IOException e) {
             stop();

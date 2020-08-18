@@ -124,6 +124,7 @@ public class ServerCore implements ServerListener {
         } else {
             listener.finalizaMinado();
             System.out.println("Nada que minar");
+            System.out.println("----------------------------------------------------------------------------------------------");
         }
     }
 

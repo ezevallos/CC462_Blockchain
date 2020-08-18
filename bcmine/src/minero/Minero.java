@@ -7,23 +7,24 @@ import modelos.RespuestaBuilder;
 import sockets.ClientThread;
 import sockets.ClientThread.ClienteListener;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Minero implements ClienteListener,MineroItf {
+public class Minero implements ClienteListener,MineroThread.MineroItf {
     private ClientThread clientThread;  //Maneja la conexion con el server
     private static final int OP_MINAR = 1;
     private static final int OP_VERIFICAR = 2;
-    private static final int numThreads = Runtime.getRuntime().availableProcessors();
-    private ExecutorService ex = Executors.newFixedThreadPool(numThreads);
+    private final int numThreads;
+    private final ExecutorService ex;
     private List<MineroThread> mineros;
 
     public Minero(String host,int puerto){
         this.clientThread = new ClientThread(host, puerto,this);
-        this.mineros = new ArrayList();
+        this.mineros = new ArrayList<>();
+        this.numThreads = Runtime.getRuntime().availableProcessors();
+        this.ex = Executors.newFixedThreadPool(numThreads);
     }
 
     public void conectar(){
@@ -50,7 +51,7 @@ public class Minero implements ClienteListener,MineroItf {
         //ex.shutdownNow();
         detieneThreads();
         for(int i = 0; i < numThreads; i++) {
-            MineroThread minero = new MineroThread(palabra,nroCeros,clientThread,ex,this);
+            MineroThread minero = new MineroThread(palabra,nroCeros,clientThread,this);
             mineros.add(minero);
             ex.execute(minero);
         }
@@ -64,48 +65,32 @@ public class Minero implements ClienteListener,MineroItf {
      * @param nroCeros
      */
     public void verificar(String palabra,String key, int nroCeros){
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-           SHAone digester = new SHAone();
-           int sumz = 0;
-           int zeros = nroCeros;
-           String z = palabra + key;
-           System.out.println("Message: z:" + z);
-           byte[] dataBuffer = (z).getBytes();
-           String thedigest = digester.Encript(dataBuffer);
-           System.out.println("Verificando palabra="+palabra+" key="+key);
-           // thedigest.charAt(0)=='0'&&thedigest.charAt(0)=='1'?":):):):):)":"--"));
-           System.out.println("A verificar out:" + thedigest);
-           //String thedigest = digester.Encript(dataBuffer);
-                    // System.out.println("out"+i+":"+thedigest+(
-                    // thedigest.charAt(0)=='0'&&thedigest.charAt(0)=='1'?":):):):):)":"--"));
-                    //System.out.println("out" + i + ":" + thedigest);
-
-                    // if (zeros == 1) {
-                    // if (thedigest.charAt(0) == '0') {
-                    // break;
-                    // }
-                    // } else if(zeros == 2){
-                    // if (thedigest.charAt(0) == '0' && thedigest.charAt(1) == '0') {
-                    // break;
-                    // }
-                    // } else {
-                    // }
-                    sumz = 0;
-                    for (int j = 0; j < zeros; j++) {
-                        if (thedigest.charAt(j) == '0') {
-                            sumz = sumz + 1;
-                        }
-                    }
-                    Datos datos = new Datos();
-                    datos.setPalabra(palabra);
-                    datos.setKey(key);
-                    if (sumz == zeros) {
-                        clientThread.enviarRespuesta(RespuestaBuilder.respVerficar(datos,true));
-                    } else {
-                        clientThread.enviarRespuesta(RespuestaBuilder.respVerficar(datos,false));                        
-                    }
+        Runnable runnable = () -> {
+            long threadID = Thread.currentThread().getId();
+            SHAone digester = new SHAone();
+            int sumz = 0;
+            int zeros = nroCeros;
+            String z = palabra + key;
+            System.out.println("Thread-"+threadID+" Message: z:" + z);
+            byte[] dataBuffer = (z).getBytes();
+            String thedigest = digester.Encript(dataBuffer);
+            System.out.println("Thread-"+threadID+" Verificando palabra=" + palabra + " key=" + key);
+            System.out.println("Thread-"+threadID+" A verificar out:" + thedigest);
+            sumz = 0;
+            for (int j = 0; j < zeros; j++) {
+                if (thedigest.charAt(j) == '0') {
+                    sumz = sumz + 1;
+                }
+            }
+            Datos datos = new Datos();
+            datos.setPalabra(palabra);
+            datos.setKey(key);
+            if (sumz == zeros) {
+                System.out.println("Thread-"+threadID+" Confirmado! palabra=" + palabra + " key=" + key);
+                clientThread.enviarRespuesta(RespuestaBuilder.respVerficar(datos, true));
+            } else {
+                System.out.println("Thread-"+threadID+" Rechazado! palabra=" + palabra + " key=" + key);
+                clientThread.enviarRespuesta(RespuestaBuilder.respVerficar(datos, false));
             }
         };
         Thread thread = new Thread(runnable);

@@ -1,34 +1,29 @@
 package minero;
 
 import modelos.Datos;
-import modelos.Mensaje;
-import modelos.Respuesta;
 import modelos.RespuestaBuilder;
 import sockets.ClientThread;
-import sockets.ClientThread.ClienteListener;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import java.util.concurrent.ExecutorService;
 
 public class MineroThread implements Runnable {
     private String palabra;
     private int nroCeros;
     private ClientThread clientThread;
-    private ExecutorService ex;
     private boolean isRunning;
     private MineroItf itf;
     
-    public MineroThread (String palabra, int nroCeros, ClientThread clientThread, ExecutorService ex, MineroItf itf) {
+    public MineroThread (String palabra, int nroCeros, ClientThread clientThread, MineroItf itf) {
         this.palabra = palabra;
         this.nroCeros = nroCeros;
         this.clientThread = clientThread;
-        this.ex = ex;
         this.isRunning = true;
         this.itf = itf;
     }
     
     @Override
     public void run() {
+        long threadID = Thread.currentThread().getId();
         SHAone digester = new SHAone();
         int sumz = 0;
         int zeros = nroCeros;
@@ -41,10 +36,10 @@ public class MineroThread implements Runnable {
                 
                 String key = RandomStringUtils.randomAlphanumeric(10,11);
                 String z = palabra + key;
-                System.out.println("Message: z:" + z);
+                System.out.println("Thread-"+threadID+" Message: z:" + z);
                 byte[] dataBuffer = (z).getBytes();
                 String thedigest = digester.Encript(dataBuffer);
-                System.out.println("out" + i + ":" + thedigest);
+                System.out.println("Thread-"+threadID+" out" + i + ":" + thedigest);
 
                 sumz = 0;
                 for (int j = 0; j < zeros; j++) {
@@ -57,15 +52,17 @@ public class MineroThread implements Runnable {
                     long timeEnd = System.currentTimeMillis();
                     itf.detieneThreads();
                     datos.setKey(key);
+                    datos.setNroCeros(nroCeros);
                     datos.setTiempoMs(timeEnd-timeStart);
                     datos.setNroIter(i);
                     clientThread.enviarRespuesta(RespuestaBuilder.respMinar(datos));
+                    System.out.println("Thread-"+threadID+" Key="+key+" encontrado en "+datos.getTiempoMs()+" ms");
                     //ex.shutdownNow();
                     break;
                 }                       
                 } catch (Exception ex) {
                 }
-
+            i++; 
         }
     }
     

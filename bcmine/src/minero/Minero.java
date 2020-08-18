@@ -13,14 +13,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Minero implements ClienteListener {
+public class Minero implements ClienteListener,MineroItf {
     private ClientThread clientThread;  //Maneja la conexion con el server
     private static final int OP_MINAR = 1;
     private static final int OP_VERIFICAR = 2;
-    private ExecutorService ex = Executors.newFixedThreadPool(4);
+    private static final int numThreads = Runtime.getRuntime().availableProcessors();
+    private ExecutorService ex = Executors.newFixedThreadPool(numThreads);
+    private List<MineroThread> mineros;
 
     public Minero(String host,int puerto){
         this.clientThread = new ClientThread(host, puerto,this);
+        this.mineros = new ArrayList();
     }
 
     public void conectar(){
@@ -45,9 +48,11 @@ public class Minero implements ClienteListener {
      */
     public void minar(String palabra,int nroCeros){
         //ex.shutdownNow();
-        for(int i = 0; i < 4; i++) {
-            Runnable runnable = new MineroThread(palabra,nroCeros,clientThread,ex);
-            ex.execute(runnable);
+        detieneThreads();
+        for(int i = 0; i < numThreads; i++) {
+            MineroThread minero = new MineroThread(palabra,nroCeros,clientThread,ex,this);
+            mineros.add(minero);
+            ex.execute(minero);
         }
         
     }
@@ -129,5 +134,13 @@ public class Minero implements ClienteListener {
         respuesta.setTipo(3);
         respuesta.setVerifica(true);
         clientThread.enviarRespuesta(respuesta);
+    }
+    
+    @Override
+    public void detieneThreads(){
+        for(MineroThread minero:mineros) {
+            minero.setRunning();
+        }
+        mineros.clear();
     }
 }

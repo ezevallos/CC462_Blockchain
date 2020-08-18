@@ -15,12 +15,16 @@ public class MineroThread implements Runnable {
     private int nroCeros;
     private ClientThread clientThread;
     private ExecutorService ex;
+    private boolean isRunning;
+    private MineroItf itf;
     
-    public MineroThread (String palabra, int nroCeros, ClientThread clientThread, ExecutorService ex) {
+    public MineroThread (String palabra, int nroCeros, ClientThread clientThread, ExecutorService ex, MineroItf itf) {
         this.palabra = palabra;
         this.nroCeros = nroCeros;
         this.clientThread = clientThread;
         this.ex = ex;
+        this.isRunning = true;
+        this.itf = itf;
     }
     
     @Override
@@ -31,7 +35,8 @@ public class MineroThread implements Runnable {
         Datos datos = new Datos();
         datos.setPalabra(palabra);
         long timeStart = System.currentTimeMillis();
-        for (int i = 0; i < 100000; i++) {
+        int i = 0; 
+        while (isRunning && i < 100000) {
             try {
                 
                 String key = RandomStringUtils.randomAlphanumeric(10,11);
@@ -50,6 +55,7 @@ public class MineroThread implements Runnable {
                 
                 if (sumz == zeros) {
                     long timeEnd = System.currentTimeMillis();
+                    itf.detieneThreads();
                     datos.setKey(key);
                     datos.setTiempoMs(timeEnd-timeStart);
                     datos.setNroIter(i);
@@ -63,4 +69,11 @@ public class MineroThread implements Runnable {
         }
     }
     
+    public void setRunning() {
+        isRunning = false;
+    }
+    
+    public interface MineroItf {
+        void detieneThreads();
+    }
 }

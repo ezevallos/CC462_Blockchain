@@ -39,6 +39,7 @@ public class ServerCore implements ServerListener {
         serverThread = new ServerThread(5555, this);
         mineros = serverThread.getMineros();
         palabras = new LinkedList<>();
+        colaVerificacion = new LinkedList<>();
         this.listener = listener;
     }
 

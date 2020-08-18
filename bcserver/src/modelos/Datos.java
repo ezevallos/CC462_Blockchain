@@ -11,7 +11,7 @@ public class Datos implements Serializable{
     private int nroCeros;
     private long nroIter;
     private long tiempoMs;
-
+    //prueba
     public Datos() {}
 
     public Datos(Integer idMinero, String palabra, String key, int nroCeros, long nroIter, long tiempoMs) {
